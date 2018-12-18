@@ -1,19 +1,65 @@
-//7. At the top of the `liri.js` file, add code to read and set any environment variables with the dotenv package:
-
-```js
 require("dotenv").config();
-```
+var keys = require("./keys");
+var fs = require("fs");
+var Spotify = require('node-spotify-api');
+
+var spotify = new Spotify(keys.spotify);
+
+var command = process.argv[2];
+var commandValue = process.argv[3];
+
+switch (command) {
+    case 'spotify-this-song':
+        spotifyThisSong(commandValue);
+        break;
+    default:
+        console.log("Unable to parse command!!!");
+}
+
+function spotifyThisSong(songName) {
+    spotify
+        .search({ type: 'track', query: songName })
+        .then(function (response) {
+            //get only the track information
+            var items = response.tracks.items;
+            //sort our tracks by most popular
+            items.sort(compare);
+            //select only the most popular choice        
+            var track = items[items.length - 1];
+            var songArtists = "\n";
+            track.album.artists.forEach(artist => songArtists += artist.name + " \n");
+            console.log("The artist(s) for the song " + songName + " is/are: " + songArtists);
+        })
+        
+        .catch(function (err) {
+            console.log(err);
+            return;
+        });
+}
 
 
-// 8. Add the code required to import the `keys.js` file and store it in a variable.
-  
-// * You should then be able to access your keys information like so
+function compare(a, b) {
+    const aTrackPopularity = a.popularity;
+    const bTrackPopulatrity = b.popularity;
 
-//   ```js
-//   var spotify = new Spotify(keys.spotify);
-//   ```
+    let comparison = 0;
+    if (aTrackPopularity > bTrackPopulatrity) {
+        comparison = 1;
+    } else if (aTrackPopularity < bTrackPopulatrity) {
+        comparison = -1;
+    }
+    return comparison;
+}
 
-// 9. Make it so liri.js can take in one of the following commands:
+
+
+
+
+
+
+
+
+
 
 //    * `concert-this`
 
